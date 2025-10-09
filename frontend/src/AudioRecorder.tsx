@@ -127,6 +127,23 @@ const AudioRecorder: React.FC = () => {
     }
   };
 
+  const fetchLyrics = async () => {
+  if (songInfo) {
+    try {
+      const response = await axios.get('http://localhost:5000/api/lyrics', {
+        params: {
+          title: songInfo.title,
+          artist: songInfo.artist,
+        },
+      });
+      setLyrics(response.data.data);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des paroles :', error);
+      setLyrics('Paroles non disponibles.');
+    }
+  }
+};
+
   return (
     <div className="audio-recorder">
       <h2>Enregistrez un extrait audio</h2>
@@ -190,11 +207,25 @@ const AudioRecorder: React.FC = () => {
                 🎵 Écouter sur Spotify
             </button>
             )}
-          <button className="share-button" onClick={generateShareLink}>
+          {/* <button className="share-button" onClick={generateShareLink}>
             Partager
-          </button>
+          </button> */}
         </div>
       )}
+
+      {songInfo && (
+        <button className="lyrics-button" onClick={fetchLyrics}>
+            🎵 Afficher les paroles
+        </button>
+        )}
+
+        {lyrics && (
+  <div className="lyrics-container">
+    <h3>Paroles :</h3>
+    <pre>{lyrics}</pre>
+  </div>
+)}
+
       {shareLink && (
         <div className="share-link">
           <p>Partagez ce lien :</p>
