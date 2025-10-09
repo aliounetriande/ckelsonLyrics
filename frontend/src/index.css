@@ -193,7 +193,7 @@ audio {
 }
 
 .share-button {
-  background-color: #4CAF50; /* Vert */
+  background-color: #800080; /* Violet */
   color: white;
   border: none;
   padding: 10px 20px;
@@ -215,11 +215,160 @@ audio {
 }
 
 .share-link a {
-  color: #4CAF50; /* Vert */
+  color: #800080; /* Violet */
   text-decoration: none;
 }
 
 .share-link a:hover {
   text-decoration: underline;
+}
+
+.audio-recorder {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  padding: 20px;
+}
+
+.record-button,
+.preview-button,
+.platform-button,
+.share-button {
+  background-color: #800080;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  margin: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+
+.record-button:hover,
+.preview-button:hover,
+.platform-button:hover,
+.share-button:hover {
+  background-color: #9932CC; /* Violet clair */ 
+}
+
+.animation {
+  font-size: 18px;
+  color: #555;
+  margin: 20px 0;
+}
+
+.song-info img {
+  border-radius: 10px;
+  margin: 10px 0;
+}
+
+.song-info button {
+  display: block;
+  margin: 10px auto;
+}
+
+.error-message {
+  color: red;
+  font-weight: bold;
+}
+
+.audio-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #1a1a1a; /* Fond gris foncé */
+  padding: 7px 0px;
+  border-radius: 20px; /* Bordures arrondies */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+  margin-top: 20px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.player-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 80%;
+  margin-top: 10px;
+}
+
+.play-pause-button {
+  background-color: #800080; /* Violet */
+  color: white;
+  border: none;
+  border-radius: 50%; /* Bouton rond */
+  width: 50px;
+  height: 50px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.play-pause-button:hover {
+  background-color: #9932CC; /* Violet clair */
+}
+
+.progress-bar {
+  -webkit-appearance: none; /* Supprime le style par défaut */
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  background: #555; /* Fond gris */
+  border-radius: 5px;
+  outline: none;
+  margin-left: 15px;
+  cursor: pointer;
+}
+
+.progress-bar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  background: #800080; /* Violet */
+  border-radius: 50%; /* Curseur rond */
+  cursor: pointer;
+}
+
+.progress-bar::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  background: #800080; /* Violet */
+  border-radius: 50%; /* Curseur rond */
+  cursor: pointer;
+}
+
+.apple-music-button {
+  background-color: #fa243c; /* Rouge Apple Music */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  margin: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.apple-music-button:hover {
+  background-color: #d91e36; /* Rouge plus foncé */
+}
+
+.spotify-button {
+  background-color: #1db954; /* Vert Spotify */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  margin: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.spotify-button:hover {
+  background-color: #1aa34a; /* Vert plus foncé */
 }
 

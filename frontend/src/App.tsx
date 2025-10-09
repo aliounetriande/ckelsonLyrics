@@ -30,7 +30,7 @@ function App() {
       <div className="stars-container"></div> {/* Conteneur pour les étoiles */}
       <header>
         <img src="/logo.png" alt="Ckelson Logo" className="logo" />
-        <h1>Ckelson</h1>
+        <h1>Ckelson ?</h1>
         <p>Identifiez vos chansons et <br /> trouvez leurs paroles !</p>
       </header>
       <main>

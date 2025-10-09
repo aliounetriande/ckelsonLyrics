@@ -16,11 +16,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Middleware
 app.use(cors());
 
-// Vérification des variables d'environnement
-if (!process.env.ACR_HOST || !process.env.ACR_ACCESS_KEY || !process.env.ACR_SECRET_KEY) {
-  console.error('Erreur : Les variables d\'environnement ACR_HOST, ACR_ACCESS_KEY ou ACR_SECRET_KEY ne sont pas définies.');
-  process.exit(1);
-}
+
 
 // Routes de base
 app.get('/', (req, res) => {
@@ -31,10 +27,10 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Le serveur fonctionne correctement' });
 });
 
-// Route pour identifier une chanson
-app.post('/api/identify', async (req, res) => {
+// Route pour identifier une chanson avec AudD
+app.post('/api/audd-identify', async (req, res) => {
   try {
-    const { audio } = req.body; // Supposons que l'audio est envoyé en base64
+    const { audio } = req.body;
 
     if (!audio) {
       console.log('Aucun fichier audio fourni');
@@ -43,56 +39,71 @@ app.post('/api/identify', async (req, res) => {
 
     console.log('Données audio reçues (Base64, 50 premiers caractères) :', audio.slice(0, 50));
 
-    // Préparer les données pour ACRCloud
-    const host = process.env.ACR_HOST;
-    const accessKey = process.env.ACR_ACCESS_KEY;
-    const secretKey = process.env.ACR_SECRET_KEY;
-    const timestamp = Math.floor(Date.now() / 1000);
-    const stringToSign = `POST\n/v1/identify\n${accessKey}\n${timestamp}`;
-    const signature = crypto
-      .createHmac('sha1', secretKey)
-      .update(stringToSign)
-      .digest('base64');
-
-    console.log('Signature générée :', signature);
-
-    // Construire le formulaire avec FormData
-    const form = new FormData();
+    // Préparer les données pour AudD
     const audioBuffer = Buffer.from(audio, 'base64');
-    form.append('sample', audioBuffer, {
-      filename: 'audio_sample.wav', // Nom du fichier (optionnel)
-      contentType: 'audio/wav', // Type MIME
+    const form = new FormData();
+    form.append('file', audioBuffer, {
+      filename: 'audio_sample.mp3',
+      contentType: 'audio/mpeg',
     });
-    form.append('access_key', accessKey);
-    form.append('data_type', 'audio');
-    form.append('signature', signature);
-    form.append('sample_bytes', audioBuffer.length);
-    form.append('timestamp', timestamp);
+    form.append('api_token', process.env.AUDD_API_TOKEN);
+    form.append('return', 'apple_music,spotify');
 
-    console.log('Paramètres envoyés à ACRCloud :', {
-      access_key: accessKey,
-      data_type: 'audio',
-      signature: signature,
-      sample_bytes: audioBuffer.length,
-      timestamp: timestamp,
-    });
+    console.log('Envoi des données à AudD...');
 
-    // Envoyer la requête à ACRCloud
-    const response = await axios.post(`https://${host}/v1/identify`, form, {
+    // Envoyer la requête à AudD
+    const response = await axios.post(process.env.AUDD_API_URL, form, {
       headers: form.getHeaders(),
     });
 
-    console.log('Réponse de l\'API ACRCloud :', response.data);
+    console.log('Réponse de l\'API AudD :', JSON.stringify(response.data, null, 2));
 
-    // Retourner les résultats
-    res.json({
-      message: 'Chanson identifiée avec succès!',
-      data: response.data,
-    });
+    // Vérifier si une chanson a été identifiée
+    if (response.data.status === 'success' && response.data.result) {
+      const result = response.data.result;
+
+      // Récupérer la cover depuis Apple Music ou Spotify
+      const cover =
+        result.apple_music?.artwork?.url?.replace('{w}x{h}', '500x500') || // Apple Music
+        result.spotify?.album?.images?.[0]?.url || // Spotify
+        'https://via.placeholder.com/500?text=No+Cover'; // Image par défaut
+
+      // Récupérer le lien de prévisualisation (previewUrl)
+      const previewUrl =
+        result.apple_music?.previews?.[0]?.url || // Apple Music preview
+        result.spotify?.preview_url || // Spotify preview
+        null;
+
+      // Récupérer les liens spécifiques à Apple Music et Spotify
+  const appleMusicLink = result.apple_music?.url || null; // Lien Apple Music
+  const spotifyLink = result.spotify?.external_urls?.spotify || null; // Lien Spotify
+
+  console.log('Preview URL :', previewUrl);
+  console.log('Apple Music Link :', appleMusicLink);
+  console.log('Spotify Link :', spotifyLink);
+
+      res.json({
+        message: 'Chanson identifiée avec succès!',
+        data: {
+          title: result.title,
+          artist: result.artist,
+          album: result.album,
+          cover, // Ajouter l'URL de la cover
+          previewUrl, // Ajouter l'URL de prévisualisation
+          appleMusicLink, // Ajouter le lien Apple Music
+            spotifyLink, // Ajouter le lien Spotify
+        },
+      });
+    } else {
+      res.status(404).json({
+        message: 'Aucune chanson identifiée.',
+        data: response.data,
+      });
+    }
   } catch (error) {
-    console.error('Erreur lors de l\'identification de la chanson :', error.response?.data || error.message);
+    console.error('Erreur lors de l\'identification de la chanson avec AudD :', error.response?.data || error.message);
     res.status(500).json({
-      error: 'Erreur lors de l\'identification de la chanson',
+      error: 'Erreur lors de l\'identification de la chanson avec AudD',
       details: error.response?.data || error.message,
     });
   }

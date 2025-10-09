@@ -2,18 +2,29 @@ import React, { useState, useRef } from 'react';
 import axios from 'axios';
 
 const AudioRecorder: React.FC = () => {
+  console.log('Le composant AudioRecorder est monté');
   const [isRecording, setIsRecording] = useState(false);
-  const [songInfo, setSongInfo] = useState<{ title: string; artist: string; album: string } | null>(null);
-  const [lyrics, setLyrics] = useState<string | null>(null); // Paroles de la chanson
-  const [isProcessing, setIsProcessing] = useState(false); // Indique si le traitement est en cours
-  const [errorMessage, setErrorMessage] = useState<string | null>(null); // Message d'erreur
-  const [shareLink, setShareLink] = useState<string | null>(null); // Lien de partage
+  const [songInfo, setSongInfo] = useState<{
+    title: string;
+    artist: string;
+    album: string;
+    cover?: string;
+    previewUrl?: string;
+    appleMusicLink?: string;
+    spotifyLink?: string;
+  } | null>(null);
+  const [lyrics, setLyrics] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false); // État pour savoir si l'audio est en lecture
+  const [progress, setProgress] = useState(0); // État pour la progression de l'audio
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [shareLink, setShareLink] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
   const startRecording = async () => {
     try {
-      // Réinitialiser les anciennes informations et messages
       setSongInfo(null);
       setLyrics(null);
       setErrorMessage(null);
@@ -29,34 +40,41 @@ const AudioRecorder: React.FC = () => {
 
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
-        audioChunksRef.current = []; // Réinitialiser les chunks
+        audioChunksRef.current = [];
 
-        // Indiquer que le traitement commence
         setIsProcessing(true);
 
-        // Envoyer l'audio au backend
         const reader = new FileReader();
         reader.readAsDataURL(audioBlob);
         reader.onloadend = async () => {
-          const base64Audio = reader.result?.toString().split(',')[1]; // Extraire la partie Base64
+          const base64Audio = reader.result?.toString().split(',')[1];
+          console.log('Données audio envoyées au backend (Base64, 50 premiers caractères) :', base64Audio?.slice(0, 50));
           try {
-            const response = await axios.post('http://localhost:5000/api/identify', {
+            const response = await axios.post('http://localhost:5000/api/audd-identify', {
               audio: base64Audio,
             });
-            const { title, artist, album } = response.data.data || {}; // Extraire les informations de la chanson
+            console.log('Données reçues du backend :', response.data.data);
+            const { title, artist, album, cover = null, previewUrl = null, appleMusicLink = null, spotifyLink = null } = response.data.data || {};
             if (title && artist && album) {
-              setSongInfo({ title, artist, album });
-              setErrorMessage(null); // Réinitialiser le message d'erreur
+              setSongInfo({ title, artist, album, cover, previewUrl, appleMusicLink, spotifyLink });
+              console.log('Informations sur la chanson :', { title, artist, album, cover, previewUrl, appleMusicLink, spotifyLink });
+              setErrorMessage(null);
             } else {
               setSongInfo(null);
+              console.log('Aucune chanson identifiée');
               setErrorMessage('Aucun son trouvé 😢');
             }
           } catch (error) {
-            console.error('Erreur lors de l\'envoi au backend :', error);
+            if (typeof error === 'object' && error !== null) {
+              const err = error as { response?: { data?: any }, message?: string };
+              console.error('Erreur lors de l\'envoi au backend :', err.response?.data || err.message);
+            } else {
+              console.error('Erreur lors de l\'envoi au backend :', error);
+            }
             setSongInfo(null);
             setErrorMessage('Une erreur est survenue 😢');
           } finally {
-            setIsProcessing(false); // Arrêter l'animation
+            setIsProcessing(false);
           }
         };
       };
@@ -64,13 +82,12 @@ const AudioRecorder: React.FC = () => {
       mediaRecorder.start();
       setIsRecording(true);
 
-      // Arrêter automatiquement l'enregistrement après 10 secondes
       setTimeout(() => {
         if (mediaRecorderRef.current) {
           mediaRecorderRef.current.stop();
           setIsRecording(false);
         }
-      }, 10000); // 10 secondes
+      }, 10000);
     } catch (error) {
       console.error('Erreur lors de l\'enregistrement audio :', error);
     }
@@ -80,6 +97,33 @@ const AudioRecorder: React.FC = () => {
     if (songInfo) {
       const link = `https://ckelson.com/share?title=${encodeURIComponent(songInfo.title)}&artist=${encodeURIComponent(songInfo.artist)}&album=${encodeURIComponent(songInfo.album)}&lyrics=${encodeURIComponent(lyrics || '')}`;
       setShareLink(link);
+    }
+  };
+
+  const handlePlayPause = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      const currentTime = audioRef.current.currentTime;
+      const duration = audioRef.current.duration;
+      setProgress((currentTime / duration) * 100);
+    }
+  };
+
+  const handleSeek = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (audioRef.current) {
+      const seekTime = (parseFloat(event.target.value) / 100) * audioRef.current.duration;
+      audioRef.current.currentTime = seekTime;
+      setProgress(parseFloat(event.target.value));
     }
   };
 
@@ -95,10 +139,57 @@ const AudioRecorder: React.FC = () => {
       {isProcessing && <div className="animation">🔄 Traitement en cours...</div>}
       {songInfo && (
         <div className="song-info">
-          <h3>Informations sur la chanson :</h3>
-          <p><strong>Titre :</strong> {songInfo.title}</p>
-          <p><strong>Artiste :</strong> {songInfo.artist}</p>
-          <p><strong>Album :</strong> {songInfo.album}</p>
+          {songInfo.cover ? (
+            <img
+              src={songInfo.cover}
+              alt={`Cover de l'album ${songInfo.album}`}
+              style={{ width: '200px', height: '200px', objectFit: 'cover' }}
+            />
+          ) : (
+            <p>Aucune couverture disponible</p>
+          )}
+          <p><strong>{songInfo.title}</strong></p>
+          <p>{songInfo.artist}</p>
+
+          {songInfo.previewUrl && (
+            <div className="audio-player">
+              <audio
+                ref={audioRef}
+                src={songInfo.previewUrl}
+                onTimeUpdate={handleTimeUpdate}
+                onEnded={() => setIsPlaying(false)} // Arrêter l'état de lecture lorsque l'audio se termine
+              />
+              <div className="player-controls">
+                <button className="play-pause-button" onClick={handlePlayPause}>
+                  {isPlaying ? '⏸️' : '▶️'}
+                </button>
+                <input
+                  type="range"
+                  className="progress-bar"
+                  value={progress}
+                  onChange={handleSeek}
+                  min="0"
+                  max="100"
+                />
+              </div>
+            </div>
+          )}
+          {songInfo.appleMusicLink && (
+            <button
+                className="platform-button apple-music-button"
+                onClick={() => window.open(songInfo.appleMusicLink, '_blank')}
+            >
+                🍎 Écouter sur Apple Music
+            </button>
+            )}
+            {songInfo.spotifyLink && (
+            <button
+                className="platform-button spotify-button"
+                onClick={() => window.open(songInfo.spotifyLink, '_blank')}
+            >
+                🎵 Écouter sur Spotify
+            </button>
+            )}
           <button className="share-button" onClick={generateShareLink}>
             Partager
           </button>
