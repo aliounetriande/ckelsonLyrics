@@ -1,13 +1,225 @@
 body {
+  font-family: 'Roboto', sans-serif; /* Police moderne */
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  padding: 0;
+  background-color: #000000; /* Fond noir */
+  color: #FFFFFF; /* Texte blanc */
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Conteneur pour les étoiles */
+.stars-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: -1; /* Derrière tout le contenu */
 }
+
+/* Style des étoiles */
+.star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background-color: #FFFFFF; /* Couleur blanche pour les étoiles */
+  border-radius: 50%;
+  animation: shooting-star 2s linear infinite;
+}
+
+/* Animation des étoiles filantes */
+@keyframes shooting-star {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) translateX(100vw);
+    opacity: 0;
+  }
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centrer verticalement */
+  align-items: center;
+  /*height: 100vh;  Prendre toute la hauteur de la page */
+  padding: 20px;
+  margin-bottom: -40px;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+header h1 {
+  font-size: 2.5rem;
+  color: #FFFFFF; /* Texte blanc */
+}
+
+header p {
+  font-size: 1.2rem;
+  color: #FFFFFF; /* Texte blanc */
+}
+
+.audio-recorder {
+  text-align: center;
+  background: #1a1a1a; /* Gris foncé */
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+  max-width: 400px;
+  width: auto; /* Ajuste automatiquement la largeur */
+  margin: 0 auto; /* Centre horizontalement */
+}
+
+.audio-recorder h2 {
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+  color: #FFFFFF; /* Texte blanc */
+}
+
+.record-button {
+  background-color: #800080; /* Violet */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border-radius: 50px; /* Bouton arrondi */
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.record-button:hover {
+  background-color: #9932CC; /* Violet clair */
+}
+
+.record-button.recording {
+  background-color: #FF4500; /* Rouge vif */
+}
+
+.audio-preview {
+  margin-top: 20px;
+}
+
+audio {
+  width: 100%;
+}
+
+.logo {
+  width: 400px; /* Taille ajustée pour le logo */
+  margin-bottom: -60px;
+}
+
+.song-info {
+  margin-top: 20px;
+  text-align: center;
+  background: #1a1a1a; /* Gris foncé */
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+  max-width: 400px;
+  width: auto;
+}
+
+.song-info h3 {
+  color: #FFFFFF; /* Texte blanc */
+  margin-bottom: 10px;
+}
+
+.song-info p {
+  color: #FFFFFF; /* Texte blanc */
+  font-size: 1rem;
+  margin: 5px 0;
+}
+
+.audio-recorder p {
+  color: #FFFFFF; /* Texte blanc */
+  font-size: 1.2rem;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.record-button {
+  background-color: #800080; /* Violet */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border-radius: 50px; /* Bouton arrondi */
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.record-button:hover {
+  background-color: #9932CC; /* Violet clair */
+}
+
+.animation {
+  color: #FFFFFF; /* Texte blanc */
+  font-size: 1.2rem;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.error-message {
+  margin-top: 20px;
+  text-align: center;
+  color: #FF4500; /* Rouge vif */
+  font-size: 1.2rem;
+}
+
+.lyrics-button {
+  background-color: #800080; /* Violet */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border-radius: 50px; /* Bouton arrondi */
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.lyrics-button:hover {
+  background-color: #9932CC; /* Violet clair */
+}
+
+.lyrics-button.disabled {
+  background-color: #555; /* Gris pour les boutons désactivés */
+  cursor: not-allowed;
+}
+
+.share-button {
+  background-color: #4CAF50; /* Vert */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border-radius: 50px; /* Bouton arrondi */
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.share-button:hover {
+  background-color: #45A049; /* Vert clair */
+}
+
+.share-link {
+  margin-top: 20px;
+  text-align: center;
+  color: #FFFFFF; /* Texte blanc */
+}
+
+.share-link a {
+  color: #4CAF50; /* Vert */
+  text-decoration: none;
+}
+
+.share-link a:hover {
+  text-decoration: underline;
+}
+
