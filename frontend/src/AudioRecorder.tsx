@@ -54,7 +54,7 @@ const AudioRecorder: React.FC = () => {
           const base64Audio = reader.result?.toString().split(',')[1];
           console.log('Données audio envoyées au backend (Base64, 50 premiers caractères) :', base64Audio?.slice(0, 50));
           try {
-            const response = await axios.post('http://localhost:5000/api/audd-identify', {
+            const response = await axios.post('http://ckelson-back.vercel.app/api/audd-identify', {
               audio: base64Audio,
             });
             console.log('Données reçues du backend :', response.data.data);

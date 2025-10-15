@@ -1,4 +1,5 @@
 const express = require('express');
+const serverless = require('serverless-http');
 const cors = require('cors');
 const axios = require('axios');
 const crypto = require('crypto');
@@ -154,3 +155,6 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log(`Serveur démarré sur le port ${PORT}`);
 });
+
+module.exports = app;
+module.exports.handler = serverless(app);
