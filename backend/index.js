@@ -31,6 +31,7 @@ app.get('/api/health', (req, res) => {
 // Route pour identifier une chanson avec AudD
 app.post('/api/audd-identify', async (req, res) => {
   try {
+    console.log('Requête reçue avec les données :', req.body);
     const { audio } = req.body;
 
     if (!audio) {
