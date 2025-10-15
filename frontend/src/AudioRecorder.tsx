@@ -1,5 +1,9 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMusic, faPlay, faPause, faMicrophone, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faSpotify } from '@fortawesome/free-brands-svg-icons';
+import { faApple } from '@fortawesome/free-brands-svg-icons';
 
 const AudioRecorder: React.FC = () => {
   console.log('Le composant AudioRecorder est monté');
@@ -152,8 +156,10 @@ const AudioRecorder: React.FC = () => {
           Enregistrer
         </button>
       )}
-      {isRecording && <div className="animation">🎙️ Enregistrement en cours...</div>}
-      {isProcessing && <div className="animation">🔄 Traitement en cours...</div>}
+      {isRecording && <div className="animation">
+        <FontAwesomeIcon icon={faMicrophone} style={{ marginRight: '8px' }} /> Enregistrement en cours...</div>}
+      {isProcessing && <div className="animation">
+        <FontAwesomeIcon icon={faSpinner} spin style={{ marginRight: '8px' }} /> Traitement en cours...</div>}
       {songInfo && (
         <div className="song-info">
           {songInfo.cover ? (
@@ -178,7 +184,7 @@ const AudioRecorder: React.FC = () => {
               />
               <div className="player-controls">
                 <button className="play-pause-button" onClick={handlePlayPause}>
-                  {isPlaying ? '⏸️' : '▶️'}
+                  <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} />
                 </button>
                 <input
                   type="range"
@@ -196,7 +202,8 @@ const AudioRecorder: React.FC = () => {
                 className="platform-button apple-music-button"
                 onClick={() => window.open(songInfo.appleMusicLink, '_blank')}
             >
-                🍎 Écouter sur Apple Music
+              <FontAwesomeIcon icon={faApple} style={{ marginRight: '8px' }} />
+              Écouter sur Apple Music
             </button>
             )}
             {songInfo.spotifyLink && (
@@ -204,7 +211,8 @@ const AudioRecorder: React.FC = () => {
                 className="platform-button spotify-button"
                 onClick={() => window.open(songInfo.spotifyLink, '_blank')}
             >
-                🎵 Écouter sur Spotify
+              <FontAwesomeIcon icon={faSpotify} style={{ marginRight: '8px' }} />
+                Écouter sur Spotify
             </button>
             )}
           {/* <button className="share-button" onClick={generateShareLink}>
@@ -214,15 +222,20 @@ const AudioRecorder: React.FC = () => {
       )}
 
       {songInfo && (
-        <button className="lyrics-button" onClick={fetchLyrics}>
-            🎵 Afficher les paroles
+        <button className="lyrics-button" style={{ marginTop: '12px' }} onClick={fetchLyrics}>
+          <FontAwesomeIcon icon={faMusic} style={{ marginRight: '8px' }} />
+            Afficher les paroles
         </button>
         )}
 
         {lyrics && (
   <div className="lyrics-container">
-    <h3>Paroles :</h3>
-    <pre>{lyrics}</pre>
+    <h3 className="lyrics-title">Paroles :</h3>
+    <div className="lyrics-content">
+      {lyrics.split('\n').map((line, index) => (
+        <p key={index}>{line}</p>
+      ))}
+    </div>
   </div>
 )}
 
