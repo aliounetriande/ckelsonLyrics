@@ -32,79 +32,86 @@ app.get('/api/health', (req, res) => {
 app.post('/api/audd-identify', async (req, res) => {
   try {
     console.log('Requête reçue avec les données :', req.body);
-    const { audio } = req.body;
+
+    const { audio, mimeType = 'audio/webm' } = req.body;
 
     if (!audio) {
       console.log('Aucun fichier audio fourni');
       return res.status(400).json({ error: 'Aucun fichier audio fourni' });
     }
 
+    const normalizedMimeType = mimeType.includes('wav')
+      ? 'audio/wav'
+      : mimeType.includes('webm')
+        ? 'audio/webm'
+        : mimeType.includes('mp4')
+          ? 'audio/mp4'
+          : 'audio/mpeg';
+
+    let extension = 'mp3';
+
+    if (normalizedMimeType.includes('wav')) extension = 'wav';
+    else if (normalizedMimeType.includes('webm')) extension = 'webm';
+    else if (normalizedMimeType.includes('mp4')) extension = 'mp4';
+
     console.log('Données audio reçues (Base64, 50 premiers caractères) :', audio.slice(0, 50));
 
-    // Préparer les données pour AudD
     const audioBuffer = Buffer.from(audio, 'base64');
+
     const form = new FormData();
     form.append('file', audioBuffer, {
-      filename: 'audio_sample.mp3',
-      contentType: 'audio/mpeg',
+      filename: `audio_sample.${extension}`,
+      contentType: normalizedMimeType,
     });
+
     form.append('api_token', process.env.AUDD_API_TOKEN);
     form.append('return', 'apple_music,spotify');
 
     console.log('Envoi des données à AudD...');
 
-    // Envoyer la requête à AudD
     const response = await axios.post(process.env.AUDD_API_URL, form, {
       headers: form.getHeaders(),
     });
 
     console.log('Réponse de l\'API AudD :', JSON.stringify(response.data, null, 2));
 
-    // Vérifier si une chanson a été identifiée
     if (response.data.status === 'success' && response.data.result) {
       const result = response.data.result;
 
-      // Récupérer la cover depuis Apple Music ou Spotify
       const cover =
-        result.apple_music?.artwork?.url?.replace('{w}x{h}', '500x500') || // Apple Music
-        result.spotify?.album?.images?.[0]?.url || // Spotify
-        'https://via.placeholder.com/500?text=No+Cover'; // Image par défaut
+        result.apple_music?.artwork?.url?.replace('{w}x{h}', '500x500') ||
+        result.spotify?.album?.images?.[0]?.url ||
+        'https://via.placeholder.com/500?text=No+Cover';
 
-      // Récupérer le lien de prévisualisation (previewUrl)
       const previewUrl =
-        result.apple_music?.previews?.[0]?.url || // Apple Music preview
-        result.spotify?.preview_url || // Spotify preview
+        result.apple_music?.previews?.[0]?.url ||
+        result.spotify?.preview_url ||
         null;
 
-      // Récupérer les liens spécifiques à Apple Music et Spotify
-  const appleMusicLink = result.apple_music?.url || null; // Lien Apple Music
-  const spotifyLink = result.spotify?.external_urls?.spotify || null; // Lien Spotify
+      const appleMusicLink = result.apple_music?.url || null;
+      const spotifyLink = result.spotify?.external_urls?.spotify || null;
 
-  console.log('Preview URL :', previewUrl);
-  console.log('Apple Music Link :', appleMusicLink);
-  console.log('Spotify Link :', spotifyLink);
-
-      res.json({
+      return res.json({
         message: 'Chanson identifiée avec succès!',
         data: {
           title: result.title,
           artist: result.artist,
           album: result.album,
-          cover, // Ajouter l'URL de la cover
-          previewUrl, // Ajouter l'URL de prévisualisation
-          appleMusicLink, // Ajouter le lien Apple Music
-            spotifyLink, // Ajouter le lien Spotify
+          cover,
+          previewUrl,
+          appleMusicLink,
+          spotifyLink,
         },
       });
-    } else {
-      res.status(404).json({
-        message: 'Aucune chanson identifiée.',
-        data: response.data,
-      });
     }
+
+    return res.status(404).json({
+      message: 'Aucune chanson identifiée.',
+      data: response.data,
+    });
   } catch (error) {
     console.error('Erreur lors de l\'identification de la chanson avec AudD :', error.response?.data || error.message);
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Erreur lors de l\'identification de la chanson avec AudD',
       details: error.response?.data || error.message,
     });
